@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, memo, useMemo } from 'react';
+import { useEffect, useState, useCallback, memo, useMemo } from 'react';
 import { addTodo, getTodos, deleteTodo as removeFromDb, updateTodoStatus, updateTodoText } from './services/todoService';
 import './App.css';
 
