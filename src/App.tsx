@@ -1,4 +1,4 @@
-import{ useEffect, useState, useCallback, memo, useMemo } from 'react';
+import  { useEffect, useState, useCallback, memo } from 'react';
 import { addTodo, getTodos, deleteTodo as removeFromDb, updateTodoStatus, updateTodoText } from './services/todoService';
 import './App.css';
 
@@ -70,18 +70,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sort todos with completed items at the bottom
-  const sortedTodos = useMemo(() => {
-    return [...todos].sort((a, b) => {
-      if (a.completed === b.completed) {
-        return 0; // maintain relative order if completion status is the same
-      }
-      return a.completed ? 1 : -1; // completed items go to the bottom
-    });
-  }, [todos]);
-
   const fetchTodos = useCallback(async () => {
     try {
+      setLoading(true);
       const data = await getTodos();
       setTodos(data as Todo[]);
       setError(null);
@@ -162,26 +153,22 @@ function App() {
     }
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditText('');
-  };
-
   const restoreTodo = async (id: string) => {
-    try {
-      const todoToRestore = deletedTodos.find(todo => todo.id === id);
-      if (todoToRestore) {
+    const todoToRestore = deletedTodos.find(todo => todo.id === id);
+    if (todoToRestore) {
+      try {
         await addTodo(todoToRestore.text);
-        setDeletedTodos(deletedTodos.filter(todo => todo.id !== id));
+        setDeletedTodos(prev => prev.filter(todo => todo.id !== id));
         await fetchTodos();
+      } catch (error) {
+        console.error('Error restoring todo:', error);
+        setError('Failed to restore todo. Please try again.');
       }
-    } catch (error) {
-      console.error('Error restoring todo:', error);
     }
   };
 
   const permanentlyDeleteTodo = (id: string) => {
-    setDeletedTodos(deletedTodos.filter(todo => todo.id !== id));
+    setDeletedTodos(prev => prev.filter(todo => todo.id !== id));
   };
 
   if (loading && todos.length === 0) {
@@ -234,7 +221,7 @@ function App() {
           <div className="todo-lists">
             {/* Active Todos */}
             <ul className="todo-list">
-              {sortedTodos.map(todo => (
+              {todos.map(todo => (
                 <TodoItem
                   key={todo.id}
                   todo={todo}
