@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, memo } from 'react';
+import React, { useEffect, useState, useCallback, memo, useMemo } from 'react';
 import { addTodo, getTodos, deleteTodo as removeFromDb, updateTodoStatus, updateTodoText } from './services/todoService';
 import './App.css';
 
@@ -69,6 +69,16 @@ function App() {
   const [showBin, setShowBin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Sort todos to move completed items to the bottom
+  const sortedTodos = useMemo(() => {
+    return [...todos].sort((a, b) => {
+      if (a.completed === b.completed) {
+        return 0;
+      }
+      return a.completed ? 1 : -1; // Move completed items to the bottom
+    });
+  }, [todos]);
 
   const fetchTodos = useCallback(async () => {
     try {
@@ -219,9 +229,8 @@ function App() {
             </button>
           </div>
           <div className="todo-lists">
-            {/* Active Todos */}
             <ul className="todo-list">
-              {todos.map(todo => (
+              {sortedTodos.map(todo => (
                 <TodoItem
                   key={todo.id}
                   todo={todo}
